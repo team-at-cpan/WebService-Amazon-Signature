@@ -4,7 +4,7 @@ requires 'POSIX::2008', 0;
 requires 'Digest::SHA', 0;
 requires 'Digest::HMAC', 0;
 requires 'List::UtilsBy', 0;
-requires 'HTTP::StreamParser', '>= 0.002';
+requires 'HTTP::StreamParser', '>= 0.100';
 requires 'URI', 0;
 requires 'URI::QueryParam', 0;
 requires 'URI::Escape', 0;

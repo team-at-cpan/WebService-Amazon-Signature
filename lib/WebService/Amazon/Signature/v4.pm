@@ -10,11 +10,9 @@ WebService::Amazon::Signature::v4 - support for v4 of the Amazon signing method
 =head1 SYNOPSIS
 
  my $req = 'GET / HTTP/1.1 ...';
- my $amz = WebService::Amazon::Signature->new(
-  version    => 4,
-  algorithm  => 'AWS4-HMAC-SHA256',
-  access_key => 'AKIDEXAMPLE',
+ my $amz = WebService::Amazon::Signature::v4->new(
   scope      => '20110909/us-east-1/host/aws4_request',
+  access_key => 'AKIDEXAMPLE',
   secret_key => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY',
  );
  $amz->parse_request($req)
@@ -91,6 +89,34 @@ sub parse_request {
 	$self->{method} = $method;
 	$self->{uri} = $uri;
 	$self->{payload} = $payload;
+	$self
+}
+
+=head2 from_http_request
+
+Parses information from an L<HTTP::Request> instance.
+
+=cut
+
+sub from_http_request {
+	my $self = shift;
+	my $req = shift;
+	$self->{method} = $req->method;
+	$self->{uri} = '' . $req->uri;
+	$self->{payload} = $req->content;
+	my %header;
+	$req->scan(sub {
+		my ($k, $v) = @_;
+		if(exists $header{lc $k}) {
+			$header{lc $k} = [
+				$header{lc $k}
+			] unless ref $header{lc $k};
+			push @{$header{lc $k}}, $v
+		} else {
+			$header{lc $k} = $v
+		}
+	});
+	$self->{header} = \%header;
 	$self
 }
 

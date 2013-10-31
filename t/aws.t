@@ -3,8 +3,8 @@ use warnings;
 
 =pod
 
-Uses the AWS4 testsuite (from ) to verify that all steps in the
-signature generation process are correct.
+Uses the AWS4 testsuite (from L<http://docs.aws.amazon.com/general/latest/gr/signing_aws_api_requests.html>)
+to verify that all steps in the signature generation process are correct.
 
 =cut
 
@@ -78,5 +78,4 @@ for my $test_name (sort keys %tests) {
 	}
 }
 done_testing;
-
 
