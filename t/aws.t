@@ -12,8 +12,8 @@ use Test::More;
 use Test::Fatal;
 use Encode;
 use Path::Tiny qw(path);
-use WebService::Amazon::Signature;
 use Dir::Self;
+use WebService::Amazon::Signature;
 
 my $credential_scope = 'AKIDEXAMPLE/20110909/us-east-1/host/aws4_request';
 my $secret_key = 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY';
