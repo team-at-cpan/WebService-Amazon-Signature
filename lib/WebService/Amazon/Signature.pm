@@ -1,5 +1,5 @@
 package WebService::Amazon::Signature;
-# ABSTRACT: 
+# ABSTRACT: support for various ways to sign AWS requests
 use strict;
 use warnings;
 

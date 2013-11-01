@@ -220,7 +220,9 @@ sub canonical_request {
 	$uri =~ s{ .*$}{}g;
 	$uri =~ s{#}{%23}g;
 
-	my $host_port = $self->host_port;
+	# We're not actually connecting to this so a default
+	# value should be safe here.
+	my $host_port = $self->host_port || 'localhost:8000';
 	my $u = URI->new('http://' . $host_port . $uri)->canonical;
 	$uri = $u->path;
 	my $path = '';
