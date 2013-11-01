@@ -14,6 +14,7 @@ WebService::Amazon::Signature::v4 - support for v4 of the Amazon signing method
   scope      => '20110909/us-east-1/host/aws4_request',
   access_key => 'AKIDEXAMPLE',
   secret_key => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY',
+  host_port  => 'dynamodb.us-west-2.amazonaws.com',
  );
  $amz->parse_request($req)
  my $signed_req = $amz->signed_request($req);
@@ -32,7 +33,25 @@ use URI;
 use URI::QueryParam;
 use URI::Escape qw(uri_escape_utf8 uri_unescape);
 
-=head1 METHODS
+=head1 METHODS - Constructor
+
+=cut
+
+=head2 new
+
+Instantiate a signing object. Expects the following named parameters:
+
+=over 4
+
+=item * scope - the scope used for requests, typically something like C<20130112/us-west-2/dynamodb/aws4_request>
+
+=item * secret_key - your secret key
+
+=item * access_key - your access key
+
+=item * host_port - the host and optional port info, will be something like C<dynamodb.us-west-2.amazonaws.com>
+
+=back
 
 =cut
 
@@ -44,12 +63,69 @@ sub new {
 	}, $class
 }
 
-sub date { shift->{date} }
+=head1 METHODS - Accessors
+
+=head2 algorithm
+
+Read-only accessor for the algorithm (default is C<AWS4-HMAC-SHA256>)
+
+=cut
+
 sub algorithm { shift->{algorithm} }
+
+=head2 host_port
+
+Read-only accessor for the host and optional port information,
+as a colon-separated string (e.g. C<localhost:8000>).
+
+=cut
+
+sub host_port { shift->{host_port} }
+
+=head2 date
+
+Read-only accessor for the date field.
+
+=cut
+
+sub date { shift->{date} }
+
+=head2 scope
+
+Read-only accessor for scope information - typically something like
+C<20110909/us-east-1/host/aws4_request>.
+
+=cut
+
 sub scope { shift->{scope} }
+
+=head2 access_key
+
+Readonly accessor for the access key used when signing requests.
+
+=cut
+
 sub access_key { shift->{access_key} }
+
+=head2 secret_key
+
+Readonly accessor for the secret key used when signing requests.
+
+=cut
+
 sub secret_key { shift->{secret_key} }
+
+=head2 signed_headers
+
+Read-only accessor for the headers used for signing purposes
+(a string consisting of the lowercase headers separated by ;
+in lexical order)
+
+=cut
+
 sub signed_headers { shift->{signed_headers} }
+
+=head1 METHODS
 
 =head2 parse_request
 
@@ -120,6 +196,13 @@ sub from_http_request {
 	$self
 }
 
+=head2 canonical_request
+
+Returns the string form of the canonical request, used
+as an intermediate point in generating the signature.
+
+=cut
+
 sub canonical_request {
 	my $self = shift;
 
@@ -137,7 +220,7 @@ sub canonical_request {
 	$uri =~ s{ .*$}{}g;
 	$uri =~ s{#}{%23}g;
 
-	my $host_port = 'localhost:8000';
+	my $host_port = $self->host_port;
 	my $u = URI->new('http://' . $host_port . $uri)->canonical;
 	$uri = $u->path;
 	my $path = '';
@@ -198,6 +281,13 @@ sub canonical_request {
 	return $can_req;
 }
 
+=head2 string_to_sign
+
+Returns the \n-separated string as the last step before
+generating the signature itself.
+
+=cut
+
 sub string_to_sign {
 	my $self = shift;
 	my $can_req = $self->canonical_request;
@@ -208,6 +298,13 @@ sub string_to_sign {
 			$self->scope,
 			$hashed;
 }
+
+=head2 calculate_signature
+
+Calculates the signature for the current request and returns it
+as a string suitable for the C<Authorization> header.
+
+=cut
 
 sub calculate_signature {
 	my $self = shift;

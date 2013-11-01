@@ -18,6 +18,7 @@ WebService::Amazon::Signature - handle signatures for Amazon webservices
   scope      => '20110909/us-east-1/host/aws4_request',
   access_key => 'AKIDEXAMPLE',
   secret_key => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY',
+  host_port  => 'localhost:8000',
  );
  $amz->parse_request($req)
  my $signed_req = $amz->signed_request($req);
