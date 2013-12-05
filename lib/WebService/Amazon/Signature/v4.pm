@@ -24,7 +24,7 @@ WebService::Amazon::Signature::v4 - support for v4 of the Amazon signing method
 =cut
 
 use POSIX qw(strftime);
-use POSIX::2008;
+use POSIX::strptime;
 use Digest::SHA qw(sha256 sha256_hex);
 use Digest::HMAC qw(hmac hmac_hex);
 use List::UtilsBy qw(sort_by);
@@ -265,7 +265,7 @@ sub canonical_request {
 	}
 	my $query = join '&', sort @query;
 	$self->{date} = ($header{date} && eval {
-		my @parts = map $_ // 0, POSIX::2008::strptime $header{date}, '%a, %d %b %Y %H:%M:%S GMT';
+		my @parts = map $_ // 0, POSIX::strptime $header{date}, '%a, %d %b %Y %H:%M:%S GMT';
 		@parts ? strftime '%Y%m%dT%H%M%SZ', @parts
 		: ();
 	}) || '20110909T23:36:00GMT';
