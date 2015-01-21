@@ -1,5 +1,4 @@
 requires 'parent', 0;
-requires 'POSIX::strptime', 0;
 requires 'Digest::SHA', 0;
 requires 'Digest::HMAC', 0;
 requires 'List::UtilsBy', 0;
@@ -7,7 +6,8 @@ requires 'HTTP::StreamParser', '>= 0.100';
 requires 'URI', 0;
 requires 'URI::QueryParam', 0;
 requires 'URI::Escape', 0;
-requires 'Mixin::Event::Dispatch', '>= 1.000';
+requires 'Mixin::Event::Dispatch', '>= 1.006';
+requires 'Time::Moment', 0;
 
 on 'test' => sub {
 	requires 'Test::More', '>= 0.98';
