@@ -23,8 +23,7 @@ WebService::Amazon::Signature::v4 - support for v4 of the Amazon signing method
 
 =cut
 
-use POSIX qw(strftime);
-use POSIX::strptime;
+use Time::Moment;
 use Digest::SHA qw(sha256 sha256_hex);
 use Digest::HMAC qw(hmac hmac_hex);
 use List::UtilsBy qw(sort_by);
@@ -264,12 +263,22 @@ sub canonical_request {
 		}
 	}
 	my $query = join '&', sort @query;
-	$self->{date} = ($header{date} && eval {
-		my @parts = map $_ // 0, POSIX::strptime $header{date}, '%a, %d %b %Y %H:%M:%S GMT';
-		@parts ? strftime '%Y%m%dT%H%M%SZ', @parts
-		: ();
-	}) || '20110909T23:36:00GMT';
 
+	# Now apply the date. This can come from various sources:
+	# * X-Amz-Date:
+	# * Date:
+	# * Current date/time
+	if(exists $header{'x-amz-date'}) {
+		$self->{date} = $header{'x-amz-date'};
+	} elsif(exists $header{'date'}) {
+		eval {
+			require Time::Piece;
+			$self->{date} = Time::Piece->strptime($header{date}, '%a, %d %b %Y %H:%M:%S GMT')->strftime('%Y%m%dT%H%M%SZ');
+		};
+		# ignore $@, we'll fall through to default value on failure
+	}
+	# Worst-case scenario: apply a default value.
+	$self->{date} ||= strftime '%Y%m%dT%H%M%SZ', gmtime;
 
 	my $can_req = join "\n",
 			$method,
