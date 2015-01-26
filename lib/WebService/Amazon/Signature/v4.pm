@@ -34,6 +34,8 @@ use URI;
 use URI::QueryParam;
 use URI::Escape qw(uri_escape_utf8 uri_unescape);
 
+use constant DEBUG => 0;
+
 use Log::Any qw($log);
 
 =head1 METHODS - Constructor
@@ -213,9 +215,11 @@ sub canonical_request {
 	$uri =~ s{#}{%23}g;
 
 	# We're not actually connecting to this so a default
-	# value should be safe here.
-	$uri = URI->new($uri) unless ref $uri;
-	my $u = $uri->clone->canonical;
+	# value should be safe here. Only used to ensure URI
+	# detects this as an HTTP URI.
+	$uri = 'http://localhost' . $uri if !length($uri) or $uri !~ /^https?:/;
+
+	my $u = (ref $uri ? $uri : URI->new($uri))->clone->canonical;
 	$uri = $u->path;
 	my $path = '';
 	while(length $uri) {
@@ -295,15 +299,15 @@ generating the signature itself.
 sub string_to_sign {
 	my $self = shift;
 	my $can_req = $self->canonical_request;
-	$log->debugf("Canonical request:\n%s", $can_req);
+	$log->debugf("Canonical request:\n%s", $can_req) if DEBUG;
 	my $hashed = sha256_hex($can_req);
-	$log->debugf("Hashed [%s]", $hashed);
+	$log->debugf("Hashed [%s]", $hashed) if DEBUG;
 	my $to_sign = join "\n",
 			$self->algorithm,
 			$self->date,
 			$self->scope,
 			$hashed;
-	$log->debugf("To sign:\n%s", $to_sign);
+	$log->debugf("To sign:\n%s", $to_sign) if DEBUG;
 	$to_sign
 }
 

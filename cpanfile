@@ -8,6 +8,7 @@ requires 'URI::QueryParam', 0;
 requires 'URI::Escape', 0;
 requires 'Mixin::Event::Dispatch', '>= 1.006';
 requires 'Time::Moment', 0;
+requires 'Log::Any', 0;
 
 on 'test' => sub {
 	requires 'Test::More', '>= 0.98';

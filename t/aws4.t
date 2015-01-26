@@ -57,22 +57,22 @@ for my $test_name (sort keys %tests) {
 		if(exists $content{creq}) {
 			my $creq = $amz->canonical_request;
 			$content{creq} =~ s{\r+}{}g;
-			is($creq, $content{creq}, 'creq matches') or die;
+			is($creq, $content{creq}, 'creq matches');
 		}
 		if(exists $content{sts}) {
 			my $sts = $amz->string_to_sign;
 			$content{sts} =~ s{\r+}{}g;
-			is($sts, $content{sts}, 'string to sign matches') or die;
+			is($sts, $content{sts}, 'string to sign matches');
 		}
 		if(exists $content{authz}) {
 			my $authz = $amz->calculate_signature;
 			$content{authz} =~ s{\r+}{}g;
-			is($authz, $content{authz}, 'authentication matches') or die;
+			is($authz, $content{authz}, 'authentication matches');
 		}
 		# Always do the signing step even if we don't have anything to check against
 		ok(my $sreq = $amz->signed_request($content{req}), 'can sign the request');
 		if(exists $content{sreq}) {
-			is($sreq, $content{sreq}, 'signed request matches') or die;
+			is($sreq, $content{sreq}, 'signed request matches');
 		}
 		done_testing;
 	}
