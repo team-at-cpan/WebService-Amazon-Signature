@@ -1,10 +1,14 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
-	No functional changes.
+	API changes:
+	* URI can now be a path, or URI instance
+	* host and port are dropped - they weren't used
+	* X-Amz-Date field is now used as the date, if provided
 
 	Dependencies:
-	* Now uses Time::Moment for strptime
+	* Now uses Time::Moment or Time::Piece for date header parsing
+	* Log::Any for DEBUG mode
 
 0.001     2013-11-01 05:41:12 Europe/London
 	Initial CPAN release

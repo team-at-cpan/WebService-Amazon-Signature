@@ -28,6 +28,8 @@ WebService::Amazon::Signature - handle signatures for Amazon webservices
 Provides methods for signing requests and verifying responses for Amazon webservices,
 as described in L<http://docs.aws.amazon.com/general/latest/gr/signing_aws_api_requests.html>.
 
+Note that most of this is subject to change over the next few versions.
+
 =cut
 
 use WebService::Amazon::Signature::v4;
