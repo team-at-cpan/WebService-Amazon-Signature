@@ -1,6 +1,8 @@
 package WebService::Amazon::Signature::v4;
+
 use strict;
 use warnings;
+
 use parent qw(WebService::Amazon::Signature);
 
 =head1 NAME
@@ -14,7 +16,6 @@ WebService::Amazon::Signature::v4 - support for v4 of the Amazon signing method
   scope      => '20110909/us-east-1/host/aws4_request',
   access_key => 'AKIDEXAMPLE',
   secret_key => 'wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY',
-  host_port  => 'dynamodb.us-west-2.amazonaws.com',
  );
  $amz->parse_request($req)
  my $signed_req = $amz->signed_request($req);
@@ -24,6 +25,7 @@ WebService::Amazon::Signature::v4 - support for v4 of the Amazon signing method
 =cut
 
 use Time::Moment;
+use POSIX qw(strftime);
 use Digest::SHA qw(sha256 sha256_hex);
 use Digest::HMAC qw(hmac hmac_hex);
 use List::UtilsBy qw(sort_by);
@@ -31,6 +33,8 @@ use HTTP::StreamParser::Request;
 use URI;
 use URI::QueryParam;
 use URI::Escape qw(uri_escape_utf8 uri_unescape);
+
+use Log::Any qw($log);
 
 =head1 METHODS - Constructor
 
@@ -47,8 +51,6 @@ Instantiate a signing object. Expects the following named parameters:
 =item * secret_key - your secret key
 
 =item * access_key - your access key
-
-=item * host_port - the host and optional port info, will be something like C<dynamodb.us-west-2.amazonaws.com>
 
 =back
 
@@ -71,15 +73,6 @@ Read-only accessor for the algorithm (default is C<AWS4-HMAC-SHA256>)
 =cut
 
 sub algorithm { shift->{algorithm} }
-
-=head2 host_port
-
-Read-only accessor for the host and optional port information,
-as a colon-separated string (e.g. C<localhost:8000>).
-
-=cut
-
-sub host_port { shift->{host_port} }
 
 =head2 date
 
@@ -221,8 +214,8 @@ sub canonical_request {
 
 	# We're not actually connecting to this so a default
 	# value should be safe here.
-	my $host_port = $self->host_port || 'localhost:8000';
-	my $u = URI->new('http://' . $host_port . $uri)->canonical;
+	$uri = URI->new($uri) unless ref $uri;
+	my $u = $uri->clone->canonical;
 	$uri = $u->path;
 	my $path = '';
 	while(length $uri) {
@@ -302,12 +295,16 @@ generating the signature itself.
 sub string_to_sign {
 	my $self = shift;
 	my $can_req = $self->canonical_request;
+	$log->debugf("Canonical request:\n%s", $can_req);
 	my $hashed = sha256_hex($can_req);
+	$log->debugf("Hashed [%s]", $hashed);
 	my $to_sign = join "\n",
 			$self->algorithm,
 			$self->date,
 			$self->scope,
 			$hashed;
+	$log->debugf("To sign:\n%s", $to_sign);
+	$to_sign
 }
 
 =head2 calculate_signature
@@ -319,6 +316,8 @@ as a string suitable for the C<Authorization> header.
 
 sub calculate_signature {
 	my $self = shift;
+	die "No secret key" unless defined($self->secret_key);
+	die "No scope" unless defined($self->scope);
 	my $hmac = 'AWS4' . $self->secret_key;
 	$hmac = hmac($_, $hmac, \&sha256) for split qr{/}, $self->scope;
 	my $signature = hmac_hex($self->string_to_sign, $hmac, \&sha256);
